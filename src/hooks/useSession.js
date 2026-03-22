@@ -1,0 +1,46 @@
+import { useState, useCallback } from 'react'
+import { nanoid } from 'nanoid'
+
+const SESSION_KEY = 'gwr_session'
+
+function loadSession() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
+function saveSession(session) {
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session))
+}
+
+export function useSession() {
+  const [session, setSession] = useState(() => loadSession())
+
+  const startSession = useCallback(({ teamName, attemptDate, startTime }) => {
+    const [hours, minutes] = startTime.split(':').map(Number)
+    const startMin = hours * 60 + minutes
+
+    const newSession = {
+      sessionId: nanoid(8),
+      teamName,
+      attemptDate,
+      startTime,
+      startTimestamp: new Date().toISOString(),
+      startMin,
+    }
+
+    saveSession(newSession)
+    setSession(newSession)
+    return newSession
+  }, [])
+
+  const clearSession = useCallback(() => {
+    localStorage.removeItem(SESSION_KEY)
+    setSession(null)
+  }, [])
+
+  return { session, startSession, clearSession }
+}
