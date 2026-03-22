@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Setup from './pages/Setup'
 import Runner from './pages/Runner'
+import Crew from './pages/Crew'
+import InstallPrompt from './components/InstallPrompt'
 import { useSession } from './hooks/useSession'
 
-export default function App() {
+function RunnerApp() {
   const { session, startSession } = useSession()
 
   const [dark, setDark] = useState(() => {
@@ -22,4 +25,16 @@ export default function App() {
   }
 
   return <Runner session={session} onToggleDark={toggleDark} />
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <InstallPrompt />
+      <Routes>
+        <Route path="/crew" element={<Crew />} />
+        <Route path="*" element={<RunnerApp />} />
+      </Routes>
+    </BrowserRouter>
+  )
 }

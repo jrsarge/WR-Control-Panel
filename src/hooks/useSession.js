@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react'
 import { nanoid } from 'nanoid'
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
+import { db, isFirebaseConfigured } from '../lib/firebase'
 
 const SESSION_KEY = 'gwr_session'
 
@@ -34,6 +36,15 @@ export function useSession() {
 
     saveSession(newSession)
     setSession(newSession)
+
+    // Sync session doc to Firestore (non-blocking)
+    if (isFirebaseConfigured) {
+      setDoc(doc(db, 'sessions', newSession.sessionId), {
+        ...newSession,
+        createdAt: serverTimestamp(),
+      }).catch(() => {})
+    }
+
     return newSession
   }, [])
 

@@ -1,23 +1,24 @@
-import { useCallback } from 'react'
-import { nanoid } from 'nanoid'
+import { useCallback, useState } from 'react'
 import PaceHeader from '../components/PaceHeader'
 import CurrentStopCard from '../components/CurrentStopCard'
 import UpcomingStops from '../components/UpcomingStops'
 import CheckInButton from '../components/CheckInButton'
 import NavigateButton from '../components/NavigateButton'
+import CrewShareCard from '../components/CrewShareCard'
+import SkipButton from '../components/SkipButton'
 import { useRoute } from '../hooks/useRoute'
 import { useCheckIns } from '../hooks/useCheckIns'
 import { useWakeLock } from '../hooks/useWakeLock'
 
 export default function Runner({ session, onToggleDark }) {
-  const { stops, currentStop, currentStopIndex, nextStops, advance, goBack } = useRoute()
-  const { checkIns, addCheckIn, removeLastCheckIn, pendingSync, completedCount } = useCheckIns()
+  const { stops, currentStop, nextStops, advance, goBack } = useRoute()
+  const { checkIns, addCheckIn, removeLastCheckIn, pendingSync } = useCheckIns(session?.sessionId)
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   useWakeLock(true)
 
   const handleCheckIn = useCallback((record) => {
     if (record.type === 'undo') {
-      // Undo: remove last check-in and go back a stop
       removeLastCheckIn()
       goBack()
       return
@@ -25,6 +26,11 @@ export default function Runner({ session, onToggleDark }) {
     addCheckIn(record)
     advance()
   }, [addCheckIn, removeLastCheckIn, advance, goBack])
+
+  const handleSkip = useCallback((record) => {
+    addCheckIn(record)
+    advance()
+  }, [addCheckIn, advance])
 
   if (!currentStop) {
     return (
@@ -44,9 +50,10 @@ export default function Runner({ session, onToggleDark }) {
         pendingSync={pendingSync}
         totalStops={stops.length}
         onToggleDark={onToggleDark}
+        onMenuOpen={() => setDrawerOpen(true)}
       />
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-32">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-52">
         <CurrentStopCard stop={currentStop} totalStops={stops.length} />
         <UpcomingStops stops={nextStops} />
       </div>
@@ -58,8 +65,27 @@ export default function Runner({ session, onToggleDark }) {
           session={session}
           onCheckIn={handleCheckIn}
         />
-        <NavigateButton stop={currentStop} />
+        <div className="flex gap-3">
+          <div className="flex-1">
+            <NavigateButton stop={currentStop} />
+          </div>
+          <SkipButton stop={currentStop} session={session} onSkip={handleSkip} />
+        </div>
       </div>
+
+      {/* Settings drawer */}
+      {drawerOpen && (
+        <div className="fixed inset-0 z-50 flex">
+          <div className="absolute inset-0 bg-black/70" onClick={() => setDrawerOpen(false)} />
+          <div className="relative ml-auto w-full max-w-sm bg-gray-950 h-full overflow-y-auto px-4 py-6 space-y-5">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-lg font-bold text-white">Settings</h2>
+              <button onClick={() => setDrawerOpen(false)} className="text-gray-400 text-xl">✕</button>
+            </div>
+            <CrewShareCard session={session} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

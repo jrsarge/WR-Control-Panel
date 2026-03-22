@@ -1,4 +1,6 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
+import { doc, setDoc, collection, serverTimestamp } from 'firebase/firestore'
+import { db, isFirebaseConfigured } from '../lib/firebase'
 
 const CHECKINS_KEY = 'gwr_checkins'
 
@@ -15,10 +17,29 @@ function saveCheckIns(checkins) {
   localStorage.setItem(CHECKINS_KEY, JSON.stringify(checkins))
 }
 
-export function useCheckIns() {
+async function syncToFirestore(sessionId, record) {
+  if (!isFirebaseConfigured || !sessionId) return
+  try {
+    const ref = doc(collection(db, 'sessions', sessionId, 'checkins'), record.id)
+    await setDoc(ref, { ...record, synced: true, createdAt: serverTimestamp() })
+  } catch {
+    // localStorage is source of truth — Firestore failure is non-blocking
+  }
+}
+
+async function syncSession(sessionId, session) {
+  if (!isFirebaseConfigured || !sessionId) return
+  try {
+    const ref = doc(db, 'sessions', sessionId)
+    await setDoc(ref, { ...session, createdAt: serverTimestamp() }, { merge: true })
+  } catch {
+    // silent
+  }
+}
+
+export function useCheckIns(sessionId) {
   const [checkIns, setCheckIns] = useState(() => loadCheckIns())
 
-  // Pending sync count — stubs for Firebase (Sprint 2)
   const pendingSync = checkIns.filter(c => !c.synced).length
 
   const addCheckIn = useCallback((record) => {
@@ -27,7 +48,17 @@ export function useCheckIns() {
       saveCheckIns(updated)
       return updated
     })
-  }, [])
+
+    // Fire-and-forget sync to Firestore
+    syncToFirestore(sessionId, record).then(() => {
+      // Mark synced in localStorage
+      setCheckIns(prev => {
+        const updated = prev.map(c => c.id === record.id ? { ...c, synced: true } : c)
+        saveCheckIns(updated)
+        return updated
+      })
+    })
+  }, [sessionId])
 
   const removeLastCheckIn = useCallback(() => {
     setCheckIns(prev => {
@@ -40,5 +71,7 @@ export function useCheckIns() {
 
   const completedCount = checkIns.filter(c => c.type === 'checkin').length
 
-  return { checkIns, addCheckIn, removeLastCheckIn, pendingSync, completedCount }
+  return { checkIns, addCheckIn, removeLastCheckIn, pendingSync, completedCount, syncSession }
 }
+
+export { syncSession }

@@ -6,7 +6,7 @@ const PACE_CONFIG = {
   BEHIND:  { label: '🔴 BEHIND',  bar: 'bg-red-500',    bg: 'bg-red-950',    text: 'text-red-400' },
 }
 
-export default function PaceHeader({ session, checkIns, pendingSync, totalStops, onToggleDark }) {
+export default function PaceHeader({ session, checkIns, pendingSync, totalStops, onToggleDark, onMenuOpen }) {
   const { pace, elapsed, remaining } = usePace(session, checkIns)
 
   const config = pace ? PACE_CONFIG[pace.status] : PACE_CONFIG.ON_PACE
@@ -60,6 +60,9 @@ export default function PaceHeader({ session, checkIns, pendingSync, totalStops,
           )}
           <button onClick={onToggleDark} className="text-gray-500 text-base leading-none">
             ☀️
+          </button>
+          <button onClick={onMenuOpen} className="text-gray-500 text-base leading-none">
+            ☰
           </button>
         </div>
       </div>
