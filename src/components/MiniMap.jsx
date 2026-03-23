@@ -1,6 +1,6 @@
-import { MapContainer, TileLayer, Marker, Polyline, useMap } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Polyline, Circle, useMap } from 'react-leaflet'
 import L from 'leaflet'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import 'leaflet/dist/leaflet.css'
 
 const currentIcon = new L.Icon({
@@ -15,6 +15,13 @@ const nextIcon = new L.Icon({
   iconSize: [20, 33], iconAnchor: [10, 33],
 })
 
+const gpsIcon = new L.DivIcon({
+  className: '',
+  html: '<div style="width:14px;height:14px;background:#22c55e;border:2px solid white;border-radius:50%;box-shadow:0 0 6px rgba(0,0,0,0.5)"></div>',
+  iconSize: [14, 14],
+  iconAnchor: [7, 7],
+})
+
 function Recenter({ lat, lon }) {
   const map = useMap()
   useEffect(() => {
@@ -24,6 +31,18 @@ function Recenter({ lat, lon }) {
 }
 
 export default function MiniMap({ currentStop, nextStop }) {
+  const [gps, setGps] = useState(null)
+
+  useEffect(() => {
+    if (!navigator.geolocation) return
+    const id = navigator.geolocation.watchPosition(
+      pos => setGps({ lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy }),
+      null,
+      { enableHighAccuracy: true }
+    )
+    return () => navigator.geolocation.clearWatch(id)
+  }, [])
+
   if (!currentStop) return null
 
   const center = [currentStop.lat, currentStop.lon]
@@ -32,16 +51,11 @@ export default function MiniMap({ currentStop, nextStop }) {
     : null
 
   return (
-    <div className="rounded-xl overflow-hidden border border-gray-800" style={{ height: 150 }}>
+    <div className="rounded-xl overflow-hidden border border-gray-800" style={{ height: 230 }}>
       <MapContainer
         center={center}
         zoom={15}
-        zoomControl={false}
-        dragging={false}
-        scrollWheelZoom={false}
-        doubleClickZoom={false}
-        touchZoom={false}
-        keyboard={false}
+        zoomControl={true}
         style={{ height: '100%', width: '100%' }}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
@@ -51,6 +65,14 @@ export default function MiniMap({ currentStop, nextStop }) {
         )}
         {legLine && (
           <Polyline positions={legLine} color="#3b82f6" weight={3} />
+        )}
+        {gps && (
+          <>
+            <Marker position={[gps.lat, gps.lon]} icon={gpsIcon} />
+            {gps.accuracy > 10 && (
+              <Circle center={[gps.lat, gps.lon]} radius={gps.accuracy} color="#22c55e" fillColor="#22c55e" fillOpacity={0.1} weight={1} />
+            )}
+          </>
         )}
         <Recenter lat={currentStop.lat} lon={currentStop.lon} />
       </MapContainer>

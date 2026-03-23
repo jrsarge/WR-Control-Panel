@@ -59,22 +59,8 @@ export default function CrewSidebar({ session, checkIns, totalStops }) {
           <p className="text-xs text-gray-500 mb-1">Pace</p>
           <p className={`text-sm font-bold ${config.text}`}>{config.label}</p>
         </div>
-        <div className="bg-gray-900 rounded-xl p-3 text-center">
-          <p className="text-xs text-gray-500 mb-1">Projected</p>
-          <p className="text-lg font-bold">{pace?.projected ?? '—'}</p>
-        </div>
       </div>
 
-      {pace && (
-        <div className="text-xs text-gray-500 text-center mb-4">
-          {pace.stopsPerHour}/hr actual · {pace.plannedCount} planned by now
-          {pace.deltaMin !== 0 && (
-            <span className={pace.deltaMin < 0 ? ' text-green-400' : ' text-red-400'}>
-              {' '}· {Math.abs(Math.round(pace.deltaMin))} min {pace.deltaMin < 0 ? 'ahead' : 'behind'}
-            </span>
-          )}
-        </div>
-      )}
 
       {/* Check-in log */}
       <div className="flex-1 overflow-y-auto">

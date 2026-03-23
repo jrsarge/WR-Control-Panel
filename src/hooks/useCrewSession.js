@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
-  doc, getDoc,
-  collection, onSnapshot,
+  doc, onSnapshot,
+  collection,
   query, orderBy,
 } from 'firebase/firestore'
 import { db, isFirebaseConfigured } from '../lib/firebase'
@@ -25,16 +25,18 @@ export function useCrewSession(sessionId) {
       return
     }
 
-    // Load session doc
-    getDoc(doc(db, 'sessions', sessionId)).then(snap => {
+    // Real-time listener on the session doc so it auto-updates when the attempt starts
+    const unsubSession = onSnapshot(doc(db, 'sessions', sessionId), snap => {
       if (!snap.exists()) {
-        setError('Session not found.')
+        setError('pending')
+        setSession(null)
         setLoading(false)
         return
       }
       setSession(snap.data())
+      setError(null)
       setLoading(false)
-    }).catch(err => {
+    }, () => {
       setError('Failed to load session.')
       setLoading(false)
     })
@@ -45,14 +47,17 @@ export function useCrewSession(sessionId) {
       orderBy('checkinTime', 'asc')
     )
 
-    const unsub = onSnapshot(q, snap => {
+    const unsubCheckIns = onSnapshot(q, snap => {
       const docs = snap.docs.map(d => d.data())
       setCheckIns(docs)
     }, () => {
       // silently ignore snapshot errors
     })
 
-    return unsub
+    return () => {
+      unsubSession()
+      unsubCheckIns()
+    }
   }, [sessionId])
 
   return { session, checkIns, loading, error }

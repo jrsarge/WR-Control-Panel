@@ -47,11 +47,7 @@ export default function PaceHeader({ session, checkIns, pendingSync, totalStops,
         />
       </div>
 
-      {/* Projection + sync */}
-      <div className="flex items-center justify-between text-xs">
-        <span className="text-gray-400">
-          Projected: <span className="text-white font-semibold">{pace?.projected ?? '—'}</span> stops
-        </span>
+      <div className="flex items-center justify-end text-xs">
         <div className="flex items-center gap-3">
           {pendingSync > 0 ? (
             <span className="text-yellow-400">⏳ {pendingSync} pending</span>

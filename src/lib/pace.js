@@ -5,16 +5,16 @@ export function plannedStopsAtElapsed(elapsedMinutes, startMin = 360) {
   return route.filter(s => s.arrival_min <= currentMin).length
 }
 
-export function calcPaceStatus(checkIns, sessionStartMin, nowMin) {
-  const elapsedMin = nowMin - sessionStartMin
+export function calcPaceStatus(checkIns, sessionStartMin, elapsedSeconds) {
+  const elapsedMin = elapsedSeconds / 60
   if (elapsedMin <= 0) return { status: 'ON_PACE', projected: 171, ratio: 1, actualCount: 0, plannedCount: 0, stopsPerHour: 0, deltaMin: 0 }
 
   const actualCount = checkIns.filter(c => c.type === 'checkin').length
   const plannedCount = plannedStopsAtElapsed(elapsedMin, sessionStartMin)
 
   const ratio = plannedCount > 0 ? actualCount / plannedCount : 1
-  const stopsPerHour = elapsedMin > 0 ? (actualCount / elapsedMin) * 60 : 0
-  const remainingMin = (sessionStartMin + 1440) - nowMin
+  const stopsPerHour = (actualCount / elapsedMin) * 60
+  const remainingMin = (86400 - elapsedSeconds) / 60
   const projected = Math.round(actualCount + stopsPerHour * (remainingMin / 60))
 
   const lastCheckin = checkIns.filter(c => c.type === 'checkin').at(-1)

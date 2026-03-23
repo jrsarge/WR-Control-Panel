@@ -95,7 +95,7 @@ export default function Runner({ session }) {
 
       {/* Settings drawer */}
       {drawerOpen && (
-        <div className="fixed inset-0 z-50 flex">
+        <div className="fixed inset-0 z-[2000] flex">
           <div className="absolute inset-0 bg-black/70" onClick={() => setDrawerOpen(false)} />
           <div className="relative ml-auto w-full max-w-sm bg-gray-950 h-full overflow-y-auto px-4 py-6 space-y-5">
             <div className="flex items-center justify-between mb-2">

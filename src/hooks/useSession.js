@@ -32,12 +32,12 @@ export function useSession() {
     return existing
   })
 
-  const startSession = useCallback(({ teamName, attemptDate, startTime }) => {
+  const startSession = useCallback(({ teamName, attemptDate, startTime, sessionId: existingId }) => {
     const [hours, minutes] = startTime.split(':').map(Number)
     const startMin = hours * 60 + minutes
 
     const newSession = {
-      sessionId: nanoid(8),
+      sessionId: existingId || nanoid(8),
       teamName,
       attemptDate,
       startTime,
@@ -53,7 +53,7 @@ export function useSession() {
       setDoc(doc(db, 'sessions', newSession.sessionId), {
         ...newSession,
         createdAt: serverTimestamp(),
-      }).catch(() => {})
+      }, { merge: true }).catch(() => {})
     }
 
     return newSession

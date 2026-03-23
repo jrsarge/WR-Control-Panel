@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import { nanoid } from 'nanoid'
 
 export default function Setup({ onStart }) {
   const today = new Date().toISOString().slice(0, 10)
   const [teamName, setTeamName] = useState('')
   const [attemptDate, setAttemptDate] = useState(today)
   const [startTime, setStartTime] = useState('06:00')
+  const [sessionId, setSessionId] = useState('')
   const [confirming, setConfirming] = useState(false)
   const [wakeError, setWakeError] = useState(false)
 
@@ -18,7 +20,7 @@ export default function Setup({ onStart }) {
     if (!('wakeLock' in navigator)) {
       setWakeError(true)
     }
-    onStart({ teamName: teamName.trim(), attemptDate, startTime })
+    onStart({ teamName: teamName.trim(), attemptDate, startTime, sessionId: sessionId.trim() || nanoid(8) })
   }
 
   return (
@@ -73,6 +75,23 @@ export default function Setup({ onStart }) {
               />
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                Crew Link Handle
+              </label>
+              <div className="flex items-center bg-gray-900 border border-gray-700 rounded-lg px-4 py-3">
+                <span className="text-gray-500 text-sm mr-1">/crew?session=</span>
+                <input
+                  type="text"
+                  value={sessionId}
+                  onChange={e => setSessionId(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                  placeholder="your-team-2026"
+                  className="bg-transparent text-white text-base focus:outline-none flex-1"
+                />
+              </div>
+              <p className="text-gray-600 text-xs mt-1">Share this link with crew before the attempt</p>
+            </div>
+
             <button
               type="submit"
               disabled={!teamName.trim()}
@@ -90,6 +109,14 @@ export default function Setup({ onStart }) {
               <p className="text-lg">{attemptDate}</p>
               <p className="text-gray-400 text-sm mt-3">Start Time</p>
               <p className="text-lg">{startTime}</p>
+              {sessionId.trim() && (
+                <>
+                  <p className="text-gray-400 text-sm mt-3">Crew Link</p>
+                  <p className="text-green-400 text-sm break-all">
+                    {window.location.origin}/crew?session={sessionId.trim()}
+                  </p>
+                </>
+              )}
             </div>
 
             <p className="text-yellow-400 font-medium text-center">
