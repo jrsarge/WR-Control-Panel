@@ -104,6 +104,21 @@ export default function Summary({ session, checkIns, elapsedSeconds }) {
           Download Evidence CSV
         </button>
 
+        {/* Start again */}
+        <button
+          onClick={() => {
+            if (confirm('Clear all data and start a new attempt?')) {
+              localStorage.removeItem('gwr_session')
+              localStorage.removeItem('gwr_checkins')
+              localStorage.removeItem('gwr_route_index')
+              window.location.reload()
+            }
+          }}
+          className="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium py-3 rounded-xl text-sm"
+        >
+          Start Again
+        </button>
+
         {/* Full check-in log */}
         <div>
           <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-3">

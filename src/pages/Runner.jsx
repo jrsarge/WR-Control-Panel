@@ -119,10 +119,12 @@ export default function Runner({ session }) {
             </button>
             <button
               onClick={() => {
-                localStorage.removeItem('gwr_session')
-                localStorage.removeItem('gwr_checkins')
-                localStorage.removeItem('gwr_route_index')
-                window.location.reload()
+                if (confirm('Reset all session data? This cannot be undone.')) {
+                  localStorage.removeItem('gwr_session')
+                  localStorage.removeItem('gwr_checkins')
+                  localStorage.removeItem('gwr_route_index')
+                  window.location.reload()
+                }
               }}
               className="w-full bg-red-900 hover:bg-red-800 text-white text-sm font-medium py-2.5 rounded-lg"
             >
