@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Setup from './pages/Setup'
 import Checklist from './pages/Checklist'
@@ -14,20 +14,9 @@ function RunnerApp() {
   const { session, startSession } = useSession()
   const [pendingSession, setPendingSession] = useState(null)
 
-  const [dark, setDark] = useState(() => {
-    return localStorage.getItem('gwr_dark') !== 'false'
-  })
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', dark)
-    localStorage.setItem('gwr_dark', dark)
-  }, [dark])
-
-  const toggleDark = () => setDark(d => !d)
-
   // Already have an active session (e.g. page reload mid-run)
   if (session) {
-    return <Runner session={session} onToggleDark={toggleDark} />
+    return <Runner session={session} />
   }
 
   // Setup complete → show checklist before starting clock

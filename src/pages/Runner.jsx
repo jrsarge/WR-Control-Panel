@@ -14,7 +14,7 @@ import { useWakeLock } from '../hooks/useWakeLock'
 import { usePace } from '../hooks/usePace'
 import { generateCSV } from '../lib/export'
 
-export default function Runner({ session, onToggleDark }) {
+export default function Runner({ session }) {
   const { stops, currentStop, nextStops, advance, goBack } = useRoute()
   const { checkIns, addCheckIn, removeLastCheckIn, pendingSync } = useCheckIns(session?.sessionId)
   const { elapsedSeconds } = usePace(session, checkIns)
@@ -69,14 +69,13 @@ export default function Runner({ session, onToggleDark }) {
         checkIns={checkIns}
         pendingSync={pendingSync}
         totalStops={stops.length}
-        onToggleDark={onToggleDark}
         onMenuOpen={() => setDrawerOpen(true)}
       />
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-52">
         <CurrentStopCard stop={currentStop} totalStops={stops.length} />
-        <UpcomingStops stops={nextStops} />
         <MiniMap currentStop={currentStop} nextStop={nextStops[0] ?? null} />
+        <UpcomingStops stops={nextStops} />
       </div>
 
       {/* Fixed bottom action bar — z-[1000] to sit above Leaflet's internal z-indices */}
