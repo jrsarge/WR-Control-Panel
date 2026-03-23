@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { doc, setDoc, collection, serverTimestamp } from 'firebase/firestore'
 import { db, isFirebaseConfigured } from '../lib/firebase'
 
@@ -39,6 +39,22 @@ async function syncSession(sessionId, session) {
 
 export function useCheckIns(sessionId) {
   const [checkIns, setCheckIns] = useState(() => loadCheckIns())
+
+  // Re-sync any check-ins that failed to reach Firestore previously
+  useEffect(() => {
+    if (!sessionId || !isFirebaseConfigured) return
+    const unsynced = checkIns.filter(c => !c.synced)
+    if (unsynced.length === 0) return
+    unsynced.forEach(record => {
+      syncToFirestore(sessionId, record).then(() => {
+        setCheckIns(prev => {
+          const updated = prev.map(c => c.id === record.id ? { ...c, synced: true } : c)
+          saveCheckIns(updated)
+          return updated
+        })
+      })
+    })
+  }, [sessionId])
 
   const pendingSync = checkIns.filter(c => !c.synced).length
 

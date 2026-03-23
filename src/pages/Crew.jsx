@@ -37,12 +37,15 @@ export default function Crew() {
       </div>
 
       {/* Sidebar — right 1/3 */}
-      <div className="w-80 shrink-0 border-l border-gray-800 overflow-hidden">
-        <CrewSidebar
-          session={session}
-          checkIns={checkIns}
-          totalStops={route.length}
-        />
+      <div className="w-80 shrink-0 border-l border-gray-800 overflow-hidden flex flex-col">
+        <div className="flex-1 overflow-hidden">
+          <CrewSidebar
+            session={session}
+            checkIns={checkIns}
+            totalStops={route.length}
+          />
+        </div>
+
       </div>
     </div>
   )

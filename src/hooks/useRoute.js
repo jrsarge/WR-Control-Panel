@@ -1,8 +1,22 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import route from '../data/route.json'
 
-export function useRoute(initialIndex = 0) {
-  const [currentStopIndex, setCurrentStopIndex] = useState(initialIndex)
+const ROUTE_INDEX_KEY = 'gwr_route_index'
+
+export function useRoute() {
+  const [currentStopIndex, setCurrentStopIndex] = useState(() => {
+    try {
+      const saved = localStorage.getItem(ROUTE_INDEX_KEY)
+      const parsed = saved !== null ? parseInt(saved, 10) : 0
+      return isNaN(parsed) ? 0 : Math.min(parsed, route.length - 1)
+    } catch {
+      return 0
+    }
+  })
+
+  useEffect(() => {
+    localStorage.setItem(ROUTE_INDEX_KEY, currentStopIndex)
+  }, [currentStopIndex])
 
   const stops = route
   const currentStop = stops[currentStopIndex] ?? null

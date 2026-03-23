@@ -19,7 +19,18 @@ function saveSession(session) {
 }
 
 export function useSession() {
-  const [session, setSession] = useState(() => loadSession())
+  const [session, setSession] = useState(() => {
+    const existing = loadSession()
+    // If a session exists in localStorage but Firebase is now working,
+    // re-sync it to Firestore in case it was missed during a previous failure
+    if (existing && isFirebaseConfigured) {
+      setDoc(doc(db, 'sessions', existing.sessionId), {
+        ...existing,
+        createdAt: serverTimestamp(),
+      }, { merge: true }).catch(() => {})
+    }
+    return existing
+  })
 
   const startSession = useCallback(({ teamName, attemptDate, startTime }) => {
     const [hours, minutes] = startTime.split(':').map(Number)

@@ -1,13 +1,18 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Setup from './pages/Setup'
+import Checklist from './pages/Checklist'
 import Runner from './pages/Runner'
-import Crew from './pages/Crew'
 import InstallPrompt from './components/InstallPrompt'
 import { useSession } from './hooks/useSession'
 
+const Crew = lazy(() => import('./pages/Crew'))
+
+// Flow: setup → checklist → runner
+// pendingSession holds the session config between setup and checklist
 function RunnerApp() {
   const { session, startSession } = useSession()
+  const [pendingSession, setPendingSession] = useState(null)
 
   const [dark, setDark] = useState(() => {
     return localStorage.getItem('gwr_dark') !== 'false'
@@ -20,11 +25,19 @@ function RunnerApp() {
 
   const toggleDark = () => setDark(d => !d)
 
-  if (!session) {
-    return <Setup onStart={startSession} />
+  // Already have an active session (e.g. page reload mid-run)
+  if (session) {
+    return <Runner session={session} onToggleDark={toggleDark} />
   }
 
-  return <Runner session={session} onToggleDark={toggleDark} />
+  // Setup complete → show checklist before starting clock
+  if (pendingSession) {
+    return (
+      <Checklist onComplete={() => startSession(pendingSession)} />
+    )
+  }
+
+  return <Setup onStart={setPendingSession} />
 }
 
 export default function App() {
@@ -32,7 +45,18 @@ export default function App() {
     <BrowserRouter>
       <InstallPrompt />
       <Routes>
-        <Route path="/crew" element={<Crew />} />
+        <Route
+          path="/crew"
+          element={
+            <Suspense fallback={
+              <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
+                <p className="text-gray-400">Loading…</p>
+              </div>
+            }>
+              <Crew />
+            </Suspense>
+          }
+        />
         <Route path="*" element={<RunnerApp />} />
       </Routes>
     </BrowserRouter>
