@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { nanoid } from 'nanoid'
+import { resumeSessionFromFirestore } from '../hooks/useSession'
 
 export default function Setup({ onStart }) {
   const today = new Date().toISOString().slice(0, 10)
@@ -10,10 +11,29 @@ export default function Setup({ onStart }) {
   const [confirming, setConfirming] = useState(false)
   const [wakeError, setWakeError] = useState(false)
 
+  const [showResume, setShowResume] = useState(false)
+  const [resumeId, setResumeId] = useState('')
+  const [resumeLoading, setResumeLoading] = useState(false)
+  const [resumeError, setResumeError] = useState('')
+
   function handleSubmit(e) {
     e.preventDefault()
     if (!teamName.trim()) return
     setConfirming(true)
+  }
+
+  async function handleResume(e) {
+    e.preventDefault()
+    if (!resumeId.trim()) return
+    setResumeLoading(true)
+    setResumeError('')
+    try {
+      await resumeSessionFromFirestore(resumeId.trim())
+      window.location.reload()
+    } catch (err) {
+      setResumeError(err.message || 'Failed to load session')
+      setResumeLoading(false)
+    }
   }
 
   function handleConfirm() {
@@ -36,6 +56,7 @@ export default function Setup({ onStart }) {
         )}
 
         {!confirming ? (
+          <>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
@@ -100,6 +121,42 @@ export default function Setup({ onStart }) {
               Start Attempt →
             </button>
           </form>
+
+          <div className="mt-6">
+            <button
+              type="button"
+              onClick={() => { setShowResume(r => !r); setResumeError('') }}
+              className="text-gray-500 text-sm hover:text-gray-300 transition-colors w-full text-center"
+            >
+              {showResume ? '↑ Cancel' : 'Resume an existing session →'}
+            </button>
+
+            {showResume && (
+              <form onSubmit={handleResume} className="mt-4 space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Session ID</label>
+                  <input
+                    type="text"
+                    value={resumeId}
+                    onChange={e => setResumeId(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                    placeholder="your-team-2026"
+                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white text-base focus:outline-none focus:border-green-500"
+                  />
+                </div>
+                {resumeError && (
+                  <p className="text-red-400 text-sm">{resumeError}</p>
+                )}
+                <button
+                  type="submit"
+                  disabled={!resumeId.trim() || resumeLoading}
+                  className="w-full bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:text-gray-600 text-white font-bold py-3 rounded-xl text-base transition-colors"
+                >
+                  {resumeLoading ? 'Loading…' : 'Resume →'}
+                </button>
+              </form>
+            )}
+          </div>
+          </>
         ) : (
           <div className="space-y-5">
             <div className="bg-gray-900 border border-gray-700 rounded-xl p-5 space-y-2">

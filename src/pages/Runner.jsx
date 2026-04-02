@@ -1,5 +1,6 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useState, useEffect, useRef } from 'react'
 import PaceHeader from '../components/PaceHeader'
+import HamburgerRain from '../components/HamburgerRain'
 import CurrentStopCard from '../components/CurrentStopCard'
 import UpcomingStops from '../components/UpcomingStops'
 import CheckInButton from '../components/CheckInButton'
@@ -13,13 +14,40 @@ import { useCheckIns } from '../hooks/useCheckIns'
 import { useWakeLock } from '../hooks/useWakeLock'
 import { usePace } from '../hooks/usePace'
 import { generateCSV } from '../lib/export'
+import { doc, onSnapshot } from 'firebase/firestore'
+import { db, isFirebaseConfigured } from '../lib/firebase'
 
 export default function Runner({ session }) {
-  const { stops, currentStop, nextStops, advance, goBack } = useRoute()
+  const { stops, currentStop, nextStops, advance, goBack } = useRoute(session?.sessionId)
   const { checkIns, addCheckIn, removeLastCheckIn, pendingSync } = useCheckIns(session?.sessionId)
   const { elapsedSeconds } = usePace(session, checkIns)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [ended, setEnded] = useState(false)
+  const [burgers, setBurgers] = useState([])
+  const burgerIdRef = useRef(0)
+  const lastHamburgerCount = useRef(null)
+
+  useEffect(() => {
+    if (!isFirebaseConfigured || !session?.sessionId) return
+    return onSnapshot(doc(db, 'sessions', session.sessionId), snap => {
+      if (!snap.exists()) return
+      const count = snap.data().hamburgerCount ?? 0
+      if (lastHamburgerCount.current !== null && count > lastHamburgerCount.current) {
+        const newBurgers = Array.from({ length: 100 }, () => ({
+          id: burgerIdRef.current++,
+          x: Math.random() * 90 + 5,
+          duration: 1.5 + Math.random() * 1.5,
+          size: 1.5 + Math.random(),
+          rotation: Math.random() * 360,
+        }))
+        setBurgers(prev => [...prev, ...newBurgers])
+        setTimeout(() => {
+          setBurgers(prev => prev.filter(b => !newBurgers.find(nb => nb.id === b.id)))
+        }, 3500)
+      }
+      lastHamburgerCount.current = count
+    })
+  }, [session?.sessionId])
 
   useWakeLock(true)
 
@@ -64,6 +92,7 @@ export default function Runner({ session }) {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
+      <HamburgerRain burgers={burgers} />
       <PaceHeader
         session={session}
         checkIns={checkIns}

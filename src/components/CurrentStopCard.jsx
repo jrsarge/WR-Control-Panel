@@ -51,6 +51,23 @@ export default function CurrentStopCard({ stop, totalStops }) {
         )}
       </div>
 
+      {stop.cheapest_item && (
+        <div className="bg-gray-800 rounded-lg p-3 mt-3">
+          <p className="text-gray-500 text-xs mb-1">Order</p>
+          <div className="flex items-center justify-between">
+            <p className="text-white font-semibold text-sm">{stop.cheapest_item}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-white font-semibold text-sm">
+                ${stop.cheapest_price?.toFixed(2)}
+              </p>
+              {stop.cheapest_is_drink && (
+                <span title="Ask for a drink">🥤</span>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {stop.is_post_midnight && (
         <div className="mt-3 text-xs text-blue-400 font-medium">
           🌙 Post-midnight stop (24/7)

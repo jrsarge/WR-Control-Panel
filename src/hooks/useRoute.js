@@ -1,9 +1,11 @@
 import { useState, useCallback, useEffect } from 'react'
+import { doc, setDoc } from 'firebase/firestore'
+import { db, isFirebaseConfigured } from '../lib/firebase'
 import route from '../data/route.json'
 
 const ROUTE_INDEX_KEY = 'gwr_route_index'
 
-export function useRoute() {
+export function useRoute(sessionId) {
   const [currentStopIndex, setCurrentStopIndex] = useState(() => {
     try {
       const saved = localStorage.getItem(ROUTE_INDEX_KEY)
@@ -16,7 +18,10 @@ export function useRoute() {
 
   useEffect(() => {
     localStorage.setItem(ROUTE_INDEX_KEY, currentStopIndex)
-  }, [currentStopIndex])
+    if (sessionId && isFirebaseConfigured) {
+      setDoc(doc(db, 'sessions', sessionId), { routeIndex: currentStopIndex }, { merge: true }).catch(() => {})
+    }
+  }, [currentStopIndex, sessionId])
 
   const stops = route
   const currentStop = stops[currentStopIndex] ?? null
