@@ -9,7 +9,7 @@ export default function HamburgerRain({ burgers }) {
           100% { transform: translateY(105vh) rotate(var(--rot)); opacity: 0; }
         }
       `}</style>
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-50">
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-[5]">
         {burgers.map(b => (
           <div
             key={b.id}

@@ -23,6 +23,7 @@ export default function Runner({ session }) {
   const { elapsedSeconds } = usePace(session, checkIns)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [ended, setEnded] = useState(false)
+  const [showEndWarning, setShowEndWarning] = useState(false)
   const [burgers, setBurgers] = useState([])
   const burgerIdRef = useRef(0)
   const lastHamburgerCount = useRef(null)
@@ -101,7 +102,7 @@ export default function Runner({ session }) {
         onMenuOpen={() => setDrawerOpen(true)}
       />
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-52">
+      <div className="relative z-[10] flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-52">
         <CurrentStopCard stop={currentStop} totalStops={stops.length} />
         <MiniMap currentStop={currentStop} nextStop={nextStops[0] ?? null} />
         <UpcomingStops stops={nextStops} />
@@ -122,6 +123,37 @@ export default function Runner({ session }) {
         </div>
       </div>
 
+      {/* End attempt warning modal */}
+      {showEndWarning && (
+        <div className="fixed inset-0 z-[3000] flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/80" onClick={() => setShowEndWarning(false)} />
+          <div className="relative bg-gray-900 rounded-2xl p-6 w-full max-w-sm space-y-4">
+            <h2 className="text-white text-lg font-bold">Download your CSV first</h2>
+            <p className="text-gray-400 text-sm">
+              Make sure you've saved the evidence CSV before ending the attempt. Once ended, you won't be prompted again.
+            </p>
+            <button
+              onClick={() => generateCSV(checkIns, session)}
+              className="w-full bg-green-700 hover:bg-green-600 text-white font-medium py-3 rounded-xl text-sm"
+            >
+              Download CSV
+            </button>
+            <button
+              onClick={() => { setShowEndWarning(false); setEnded(true) }}
+              className="w-full bg-red-900 hover:bg-red-800 text-white font-medium py-3 rounded-xl text-sm"
+            >
+              End Attempt Anyway
+            </button>
+            <button
+              onClick={() => setShowEndWarning(false)}
+              className="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium py-2.5 rounded-xl text-sm"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Settings drawer */}
       {drawerOpen && (
         <div className="fixed inset-0 z-[2000] flex">
@@ -139,9 +171,7 @@ export default function Runner({ session }) {
               Export Evidence CSV
             </button>
             <button
-              onClick={() => {
-                if (confirm('End the attempt and view summary?')) setEnded(true)
-              }}
+              onClick={() => setShowEndWarning(true)}
               className="w-full bg-red-900 hover:bg-red-800 text-white font-medium py-3 rounded-xl text-sm"
             >
               End Attempt
