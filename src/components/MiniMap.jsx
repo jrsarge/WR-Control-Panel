@@ -136,8 +136,6 @@ export default function MiniMap({ currentStop, nextStop }) {
           top: 8,
           right: 8,
           zIndex: 1000,
-          transform: `rotate(${northRotation}deg)`,
-          transition: 'transform 0.3s ease',
           background: 'rgba(0,0,0,0.65)',
           color: 'white',
           borderRadius: 6,
@@ -149,7 +147,7 @@ export default function MiniMap({ currentStop, nextStop }) {
           userSelect: 'none',
         }}
       >
-        N↑
+        {heading != null ? `${Math.round(heading)}°` : '—°'}
       </div>
 
       {/* GPS status pill — shown only when there's a problem */}
