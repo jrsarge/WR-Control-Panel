@@ -18,7 +18,14 @@ export default function useCompassHeading() {
     } else {
       return
     }
-    setHeading(h)
+    const SMOOTHING = 0.4
+    setHeading(prev => {
+      if (prev == null) return h
+      let delta = h - prev
+      if (delta > 180) delta -= 360
+      if (delta < -180) delta += 360
+      return (prev + delta * SMOOTHING + 360) % 360
+    })
   }, [])
 
   useEffect(() => {

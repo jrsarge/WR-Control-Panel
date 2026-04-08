@@ -53,15 +53,36 @@ function Recenter({ lat, lon }) {
 
 export default function MiniMap({ currentStop, nextStop }) {
   const [gps, setGps] = useState(null)
+  const [gpsError, setGpsError] = useState(null)
   const { heading, permissionState, requestPermission } = useCompassHeading()
 
   useEffect(() => {
-    if (!navigator.geolocation) return
-    const id = navigator.geolocation.watchPosition(
-      pos => setGps({ lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy }),
-      null,
-      { enableHighAccuracy: true }
-    )
+    if (!navigator.geolocation) {
+      setGpsError('unavailable')
+      return
+    }
+
+    const onSuccess = pos => {
+      setGpsError(null)
+      setGps({ lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy })
+    }
+
+    const onErrorFallback = (err) => setGpsError(err.code === 1 ? 'denied' : 'unavailable')
+
+    const onError = (err) => {
+      if (err.code === 1) {
+        // Permission denied — no point retrying
+        setGpsError('denied')
+        return
+      }
+      // Timeout or position unavailable — retry with low accuracy
+      navigator.geolocation.watchPosition(onSuccess, onErrorFallback, { enableHighAccuracy: false, timeout: 10000 })
+    }
+
+    const id = navigator.geolocation.watchPosition(onSuccess, onError, {
+      enableHighAccuracy: true,
+      timeout: 10000,
+    })
     return () => navigator.geolocation.clearWatch(id)
   }, [])
 
@@ -131,6 +152,26 @@ export default function MiniMap({ currentStop, nextStop }) {
       >
         N↑
       </div>
+
+      {/* GPS status pill — shown only when there's a problem */}
+      {gpsError && (
+        <div style={{
+          position: 'absolute',
+          bottom: 8,
+          left: 8,
+          zIndex: 1000,
+          background: 'rgba(0,0,0,0.75)',
+          color: '#f87171',
+          borderRadius: 6,
+          padding: '3px 8px',
+          fontSize: 11,
+          fontWeight: 600,
+          pointerEvents: 'none',
+          userSelect: 'none',
+        }}>
+          {gpsError === 'denied' ? '📍 Location denied' : '📍 No GPS signal'}
+        </div>
+      )}
 
       {/* Enable Compass button — iOS only, shown until permission granted */}
       {permissionState === 'prompt' && (
