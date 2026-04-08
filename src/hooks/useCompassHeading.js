@@ -18,7 +18,7 @@ export default function useCompassHeading() {
     } else {
       return
     }
-    const SMOOTHING = 0.4
+    const SMOOTHING = 0.1
     setHeading(prev => {
       if (prev == null) return h
       let delta = h - prev
