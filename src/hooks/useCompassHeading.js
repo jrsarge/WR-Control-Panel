@@ -13,8 +13,7 @@ export default function useCompassHeading() {
       // iOS
       h = e.webkitCompassHeading
     } else if (e.alpha != null) {
-      // Android: alpha is counter-clockwise from north
-      h = (360 - e.alpha) % 360
+      h = e.alpha
     } else {
       return
     }

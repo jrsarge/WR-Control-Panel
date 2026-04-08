@@ -38,7 +38,7 @@ function BearingController({ heading }) {
   const map = useMap()
   useEffect(() => {
     if (heading == null) return
-    map.setBearing(heading)
+    map.setBearing(360 - heading)
   }, [heading, map])
   return null
 }
@@ -97,7 +97,7 @@ export default function MiniMap({ currentStop, nextStop }) {
   const recenterLon = gps ? gps.lon : currentStop.lon
 
   // North indicator rotation: counter-rotate by heading so "N" stays pointing map-north
-  const northRotation = heading != null ? -heading : 0
+  const northRotation = heading != null ? heading : 0
 
   return (
     <div className="rounded-xl overflow-hidden border border-gray-800" style={{ height: 230, position: 'relative' }}>
