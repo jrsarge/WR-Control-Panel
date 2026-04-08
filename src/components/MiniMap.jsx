@@ -67,11 +67,11 @@ export default function MiniMap({ currentStop, nextStop }) {
       setGps({ lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy })
     }
 
-    const onErrorFallback = (err) => setGpsError(`${err.code}: ${err.message}`)
+    const onErrorFallback = (err) => setGpsError(err.code === 1 ? 'denied' : 'unavailable')
 
     const onError = (err) => {
       if (err.code === 1) {
-        setGpsError(`${err.code}: ${err.message}`)
+        setGpsError('denied')
         return
       }
       // Timeout or position unavailable — retry with low accuracy
@@ -136,6 +136,8 @@ export default function MiniMap({ currentStop, nextStop }) {
           top: 8,
           right: 8,
           zIndex: 1000,
+          transform: `rotate(${northRotation}deg)`,
+          transition: 'transform 0.3s ease',
           background: 'rgba(0,0,0,0.65)',
           color: 'white',
           borderRadius: 6,
@@ -147,7 +149,7 @@ export default function MiniMap({ currentStop, nextStop }) {
           userSelect: 'none',
         }}
       >
-        {heading != null ? `${Math.round(heading)}°` : '—°'}
+        N↑
       </div>
 
       {/* GPS status pill — shown only when there's a problem */}
@@ -166,7 +168,7 @@ export default function MiniMap({ currentStop, nextStop }) {
           pointerEvents: 'none',
           userSelect: 'none',
         }}>
-          📍 {gpsError}
+          {gpsError === 'denied' ? '📍 Location denied' : '📍 No GPS signal'}
         </div>
       )}
 
