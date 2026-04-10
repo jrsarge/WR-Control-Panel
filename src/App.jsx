@@ -34,7 +34,8 @@ export default function App() {
             </Suspense>
           }
         />
-        <Route path="*" element={<RunnerApp />} />
+        <Route path="/run" element={<RunnerApp />} />
+        <Route path="*" element={null} />
       </Routes>
     </BrowserRouter>
   )
